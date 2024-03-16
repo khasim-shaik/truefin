@@ -121,14 +121,11 @@ def get_years_to_pay_off_20_percent(purchase_value, down_payment, interest_rate)
     if twenty_percent_point < 0: # if the down payment is more than 20% of the purchase price, return 0
         return 0
 
-    # calculate the financed amount
-    financed_amount = purchase_value - down_payment
-
     # calculate the number of years to pay off 20% of the financed amount using the column cumulative principal in the amortization schedule
     years_to_pay_off_20_percent = 0
     cumulative_principal = 0
     for month in schedule:
-        cumulative_principal += schedule[month]['principal']
+        cumulative_principal += schedule[month]['Principal']
         if cumulative_principal <= twenty_percent_point:
             years_to_pay_off_20_percent += 1 / 12.0
         else:
@@ -166,34 +163,35 @@ def get_pmi_monthly(purchase_value, down_payment, pmi_rate):
 
 
 # calculate the total PMI paid till the point years_to_pay_off_20_percent is reached.
-def get_total_pmi_paid(purchase_value, down_payment, years_to_hold):
+
+def get_total_pmi_paid(purchase_value, down_payment,pmi_rate, years_to_hold,interest_rate):
     # calculate the total PMI paid
-    schedule = calculate_amortization_schedule(purchase_value, down_payment)
+    schedule = calculate_amortization_schedule(purchase_value, down_payment,interest_rate)
 
     # calculate the number of years to pay off 20% of the financed amount using the column cumulative principal in the amortization schedule
-    years_to_pay_off_20_percent = get_years_to_pay_off_20_percent(purchase_value, down_payment)
+    years_to_pay_off_20_percent = get_years_to_pay_off_20_percent(purchase_value, down_payment,interest_rate)
 
     # calculate the total PMI paid till the point years_to_pay_off_20_percent is reached
-    total_pmi_paid = years_to_pay_off_20_percent * 12.0 * get_pmi_monthly(purchase_value, down_payment)
+    total_pmi_paid = years_to_pay_off_20_percent * 12.0 * get_pmi_monthly(purchase_value, down_payment,pmi_rate)
 
     # return the total PMI paid
     return total_pmi_paid
 
 # calculate the total principal paid during the period of ownership.
 # assume that the principal is paid monthly.
-def get_total_principal_paid(purchase_value, down_payment):
+def get_total_principal_paid(purchase_value, down_payment,interest_rate, years_to_hold):
     # calculate the total principal paid
-    schedule = calculate_amortization_schedule(purchase_value, down_payment)
+    schedule = calculate_amortization_schedule(purchase_value, down_payment,interest_rate)
 
     # get the total principal paid from the amortization schedule
-    total_principal_paid = schedule['cumulative_principal'].iloc[-1]
+    total_principal_paid = schedule['Cumulative Principal'].iloc[-1]
 
     # return the total principal paid
     return total_principal_paid
 
 def get_total_interest_paid(purchase_value, down_payment, interest_rate, years_to_hold):
     # calculate the total interest paid
-    schedule = calculate_amortization_schedule(purchase_value, down_payment)
+    schedule = calculate_amortization_schedule(purchase_value, down_payment,interest_rate)
 
     # months held
     months_held = years_to_hold * 12
@@ -272,7 +270,7 @@ def get_total_annual_maintenance_cost(purchase_value, maintenance_rate):
 
 def get_monthly_cost_of_owning(purchase_value, down_payment, interest_rate, years_to_hold, property_tax_rate, hoa_payment, maintenance_rate):
     # calculate the values from the given variables
-    monthly_payment = get_monthly_mortogage_payment(purchase_value, down_payment, interest_rate, years_to_hold)
+    monthly_payment = get_monthly_mortogage_payment(purchase_value, down_payment, interest_rate)
     pmi = get_pmi_monthly(purchase_value, down_payment, years_to_hold)
     property_tax = get_property_tax_monthly(purchase_value, property_tax_rate)
     insurance = get_insurance_monthly(purchase_value)
@@ -313,7 +311,7 @@ def get_total_rental_income(years_to_hold, monthly_rental_income):
 # create a function to calculate the net payment. Since a part of the home can be rented to generate income, the net payment is the total monthly cost of owning a home minus the monthly rental income.
 def get_net_payment(total_monthly_cost_of_owning, monthly_rental_income):
     # calculate the net payment
-    net_payment = total_monthly_cost_of_owning - monthly_rental_income
+    net_payment = total_monthly_cost_of_owning['total_monthly_cost_of_owning'] - monthly_rental_income
 
     # return the net payment
     return net_payment
@@ -367,10 +365,10 @@ def calculate_buy_rent(purchase_value, down_payment, interest_rate, tax_rate, ma
     monthly_net_cost_of_owning = get_net_payment(total_monthly_cost_of_owning, rental_income)
     total_hoa_cost_in_owning = get_total_hoa_paid(years_to_hold, hoa_payment)
     total_maintaince_cost_in_owning = get_total_annual_maintenance_cost(purchase_value, maintenance_rate)
-    total_tax_paid_in_owning = get_total_tax_paid(purchase_value, tax_rate)
+    total_tax_paid_in_owning = get_total_tax_paid(purchase_value, avg_appreciation_per_year,years_to_hold, tax_rate)
     total_principal_paid_in_owning = get_total_principal_paid(purchase_value, down_payment, interest_rate, years_to_hold)
     total_interest_paid_in_owning = get_total_interest_paid(purchase_value, down_payment, interest_rate, years_to_hold)
-    total_pmi_paid_in_owning = get_total_pmi_paid(purchase_value, down_payment, pmi_rate, years_to_hold)
+    total_pmi_paid_in_owning = get_total_pmi_paid(purchase_value, down_payment, pmi_rate, years_to_hold,interest_rate)
     total_rent_earned_in_ownership = get_total_rental_income(years_to_hold, rental_income)
     selling_cost = get_selling_cost(future_value_of_home)
     mortgage_amount_remaining = get_mortgage_amount_remaining(purchase_value, down_payment, total_principal_paid_in_owning)
@@ -405,6 +403,8 @@ def calculate_buy_rent(purchase_value, down_payment, interest_rate, tax_rate, ma
     }
 
     summary.update(total_monthly_cost_of_owning)
+    summary=pd.DataFrame([summary]).round(0).T
+    
 
     return summary
 
