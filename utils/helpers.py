@@ -1,0 +1,3 @@
+def get_summary(data):
+    # Define the get_summary function or any other helper functions here
+    ...
