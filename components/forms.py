@@ -13,6 +13,8 @@ def user_input_form():
         hoa_payment = st.number_input("HOA payment", value=100)
         avg_appreciation_per_year = st.slider("Average appreciation per year (%)", min_value=1, max_value=10, value=3, step=1, format="%f")
         rent_cost = st.slider("Rent cost", min_value=500, max_value=5000, value=1900, step=100, format="%d")
+        
         submitted = st.form_submit_button("Submit")
+    
     
     return submitted,home_price, down_payment, interest_rate, tax_rate, maintenance_rate, pmi_rate, years_to_hold, rental_income, hoa_payment, avg_appreciation_per_year, rent_cost

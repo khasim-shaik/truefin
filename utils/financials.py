@@ -124,10 +124,10 @@ def get_years_to_pay_off_20_percent(purchase_value, down_payment, interest_rate)
     # calculate the number of years to pay off 20% of the financed amount using the column cumulative principal in the amortization schedule
     years_to_pay_off_20_percent = 0
     cumulative_principal = 0
-    for month in schedule:
-        cumulative_principal += schedule[month]['Principal']
+    for month in range(1, schedule.shape[0] + 1):
+        cumulative_principal += schedule.loc[month]['Principal']
         if cumulative_principal <= twenty_percent_point:
-            years_to_pay_off_20_percent += 1 / 12.0
+            years_to_pay_off_20_percent += (1/12.0)
         else:
             break
 
@@ -153,7 +153,7 @@ def get_pmi_monthly(purchase_value, down_payment, pmi_rate):
     # calculate the PMI
     financed_amount = purchase_value - down_payment
     if down_payment < 0.2 * purchase_value:
-        pmi = pmi_rate / 100 * financed_amount
+        pmi = pmi_rate  * financed_amount
     else:
         pmi = 0
 
@@ -208,7 +208,7 @@ def get_total_interest_paid(purchase_value, down_payment, interest_rate, years_t
 # create a function to calculate the monthly property tax. Assume that the property tax is paid monthly.
 def get_property_tax_monthly(purchase_value, property_tax_rate):
     # calculate the monthly property tax
-    property_tax = property_tax_rate / 100 * purchase_value
+    property_tax = property_tax_rate  * purchase_value
 
     # return the monthly property tax
     return property_tax / 12
@@ -216,8 +216,9 @@ def get_property_tax_monthly(purchase_value, property_tax_rate):
 # create a function to calculate the total tax paid on the home during the period of ownership.
 # Assume the tax is 1% of the purchase price and increases by the average appreciation rate per year.
 def get_total_tax_paid(purchase_value, avg_appreciation_per_year, years_to_hold, property_tax_rate):
-    tax_rate = property_tax_rate / 100
-    total_tax_paid = sum([purchase_value * tax_rate * ((1 + avg_appreciation_per_year) ** i) for i in range(years_to_hold)])
+    tax_rate = property_tax_rate 
+    avg_appreciation_per_year = avg_appreciation_per_year
+    total_tax_paid = sum([purchase_value * tax_rate * ((1 + avg_appreciation_per_year) ** i) for i in range(years_to_hold-1)])
 
     return total_tax_paid
 
@@ -268,10 +269,10 @@ def get_total_annual_maintenance_cost(purchase_value, maintenance_rate):
 # claculate the total HOA paid during the period of ownership.
 # assume that the HOA is paid monthly. Assume HOA increases by 0.1% per year.
 
-def get_monthly_cost_of_owning(purchase_value, down_payment, interest_rate, years_to_hold, property_tax_rate, hoa_payment, maintenance_rate):
+def get_monthly_cost_of_owning(purchase_value, down_payment, interest_rate, years_to_hold, property_tax_rate, hoa_payment, maintenance_rate,pmi_rate):
     # calculate the values from the given variables
     monthly_payment = get_monthly_mortogage_payment(purchase_value, down_payment, interest_rate)
-    pmi = get_pmi_monthly(purchase_value, down_payment, years_to_hold)
+    pmi = get_pmi_monthly(purchase_value, down_payment, pmi_rate)
     property_tax = get_property_tax_monthly(purchase_value, property_tax_rate)
     insurance = get_insurance_monthly(purchase_value)
     hoa = get_hoa_monthly(hoa_payment)
@@ -289,7 +290,6 @@ def get_monthly_cost_of_owning(purchase_value, down_payment, interest_rate, year
         'maintenance': maintenance,
         'total_monthly_cost_of_owning': total_monthly_cost_of_owning
     }
-    
     return results_cost_of_ownership
 
 
@@ -360,8 +360,15 @@ def get_net_present_value(years_to_hold, inflation_rate, total_money_gained, tot
 def calculate_buy_rent(purchase_value, down_payment, interest_rate, tax_rate, maintenance_rate, pmi_rate, years_to_hold, rental_income, hoa_payment, avg_appreciation_per_year, rent_cost):
     # Function body remains unchanged
 
+    #reformat rates to decimal
+    tax_rate = tax_rate/100
+    maintenance_rate = maintenance_rate/100
+    pmi_rate = pmi_rate/100
+    interest_rate = interest_rate/100
+    avg_appreciation_per_year=  avg_appreciation_per_year/100
+
     future_value_of_home = get_home_value_after_period(purchase_value, avg_appreciation_per_year, years_to_hold)
-    total_monthly_cost_of_owning = get_monthly_cost_of_owning(purchase_value, down_payment, interest_rate, years_to_hold, tax_rate, hoa_payment, maintenance_rate)
+    total_monthly_cost_of_owning = get_monthly_cost_of_owning(purchase_value, down_payment, interest_rate, years_to_hold, tax_rate, hoa_payment, maintenance_rate,pmi_rate)
     monthly_net_cost_of_owning = get_net_payment(total_monthly_cost_of_owning, rental_income)
     total_hoa_cost_in_owning = get_total_hoa_paid(years_to_hold, hoa_payment)
     total_maintaince_cost_in_owning = get_total_annual_maintenance_cost(purchase_value, maintenance_rate)
