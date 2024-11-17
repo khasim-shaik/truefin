@@ -1,3 +1,23 @@
-streamlit_buyrent_app/
+# Python
+streamlit_buyrent_app/__pycache__/
+streamlit_buyrent_app/*.py[cod]
+streamlit_buyrent_app/*$py.class
+
+# Distribution / packaging
+streamlit_buyrent_app/dist/
+streamlit_buyrent_app/build/
+streamlit_buyrent_app/*.egg-info/
+
+# Virtual Environment
+streamlit_buyrent_app/venv/
+streamlit_buyrent_app/.env
+
+# IDE
+streamlit_buyrent_app/.idea/
+streamlit_buyrent_app/.vscode/
+
+# Streamlit specific
+streamlit_buyrent_app/.streamlit/secrets.toml
+streamlit_buyrent_app/.streamlit/config.toml
 access_toke.txt
 truefin/
